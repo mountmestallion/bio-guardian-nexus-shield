@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Shield, Wifi, Settings, AlertTriangle, Activity } from 'lucide-react';
 import DashboardHeader from '../components/DashboardHeader';
 import ScanPanel from '../components/ScanPanel';
