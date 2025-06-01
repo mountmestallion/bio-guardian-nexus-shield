@@ -1,40 +1,79 @@
 
 import { useState, useEffect } from 'react';
-import { Wifi, WifiOff, AlertTriangle, CheckCircle, Signal } from 'lucide-react';
+import { Bluetooth, BluetoothOff, AlertTriangle, CheckCircle, Signal } from 'lucide-react';
 
 const ScanPanel = ({ onDeviceSelect }) => {
   const [isScanning, setIsScanning] = useState(false);
   const [devices, setDevices] = useState([]);
+  const [bluetoothSupported, setBluetoothSupported] = useState(false);
 
-  // Simulate BLE device scanning
   useEffect(() => {
-    if (isScanning) {
-      const interval = setInterval(() => {
-        const newDevice = {
-          id: Math.random().toString(36).substr(2, 9),
-          mac: generateMacAddress(),
-          name: generateDeviceName(),
-          rssi: Math.floor(Math.random() * 100) - 100,
-          threatLevel: Math.random() > 0.7 ? 'high' : Math.random() > 0.5 ? 'medium' : 'low',
-          timestamp: new Date().toLocaleTimeString(),
-        };
-        
-        setDevices(prev => [newDevice, ...prev.slice(0, 19)]);
-      }, 2000 + Math.random() * 3000);
-
-      return () => clearInterval(interval);
+    // Check if Web Bluetooth API is supported
+    if (navigator.bluetooth) {
+      setBluetoothSupported(true);
+    } else {
+      console.log('Web Bluetooth API is not supported in this browser');
     }
-  }, [isScanning]);
+  }, []);
+
+  const startBluetoothScan = async () => {
+    if (!navigator.bluetooth) {
+      alert('Web Bluetooth API is not supported in this browser');
+      return;
+    }
+
+    try {
+      setIsScanning(true);
+      
+      // Request a Bluetooth device
+      const device = await navigator.bluetooth.requestDevice({
+        acceptAllDevices: true,
+        optionalServices: ['battery_service', 'device_information']
+      });
+
+      console.log('Selected device:', device);
+
+      const newDevice = {
+        id: device.id || Math.random().toString(36).substr(2, 9),
+        mac: device.id || generateMacAddress(),
+        name: device.name || 'Unknown Device',
+        rssi: Math.floor(Math.random() * 100) - 100, // Simulated RSSI
+        threatLevel: Math.random() > 0.7 ? 'high' : Math.random() > 0.5 ? 'medium' : 'low',
+        timestamp: new Date().toLocaleTimeString(),
+        device: device
+      };
+
+      setDevices(prev => [newDevice, ...prev.slice(0, 19)]);
+
+    } catch (error) {
+      console.error('Bluetooth scan error:', error);
+      if (error.name === 'NotFoundError') {
+        console.log('No device selected');
+      } else {
+        alert('Error scanning for devices: ' + error.message);
+      }
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  const stopScan = () => {
+    setIsScanning(false);
+    console.log('Bluetooth scan stopped');
+  };
+
+  const handleScanToggle = () => {
+    if (isScanning) {
+      stopScan();
+    } else {
+      startBluetoothScan();
+    }
+  };
 
   const generateMacAddress = () => {
     return Array.from({length: 6}, () => 
       Math.floor(Math.random() * 256).toString(16).padStart(2, '0').toUpperCase()
     ).join(':');
-  };
-
-  const generateDeviceName = () => {
-    const names = ['Unknown Device', 'BLE Sensor', 'SmartWatch', 'IoT Node', 'Nano Beacon', 'Health Monitor'];
-    return names[Math.floor(Math.random() * names.length)];
   };
 
   const getThreatColor = (level) => {
@@ -58,19 +97,27 @@ const ScanPanel = ({ onDeviceSelect }) => {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h2 className="text-3xl font-bold text-white mb-2">BLE Device Scanner</h2>
-          <p className="text-gray-300">Real-time Bluetooth Low Energy device detection and analysis</p>
+          <p className="text-gray-300">Real-time Bluetooth Low Energy device detection using Web Bluetooth API</p>
+          {!bluetoothSupported && (
+            <p className="text-red-400 text-sm mt-2">
+              ⚠️ Web Bluetooth API not supported in this browser. Try Chrome/Edge on desktop or Android.
+            </p>
+          )}
         </div>
         
         <button
-          onClick={() => setIsScanning(!isScanning)}
+          onClick={handleScanToggle}
+          disabled={!bluetoothSupported}
           className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-            isScanning
+            !bluetoothSupported
+              ? 'bg-gray-500 cursor-not-allowed text-gray-300'
+              : isScanning
               ? 'bg-red-500 hover:bg-red-600 text-white'
               : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white'
           }`}
         >
-          {isScanning ? <WifiOff className="w-5 h-5" /> : <Wifi className="w-5 h-5" />}
-          <span>{isScanning ? 'Stop Scan' : 'Start Scan'}</span>
+          {isScanning ? <BluetoothOff className="w-5 h-5" /> : <Bluetooth className="w-5 h-5" />}
+          <span>{isScanning ? 'Stop Scan' : 'Start BLE Scan'}</span>
         </button>
       </div>
 
@@ -91,7 +138,12 @@ const ScanPanel = ({ onDeviceSelect }) => {
         <div className="max-h-96 overflow-y-auto">
           {devices.length === 0 ? (
             <div className="p-8 text-center text-gray-400">
-              {isScanning ? 'Searching for devices...' : 'Start scanning to detect BLE devices'}
+              {!bluetoothSupported 
+                ? 'Web Bluetooth API not supported in this browser'
+                : isScanning 
+                ? 'Searching for devices...' 
+                : 'Click "Start BLE Scan" to detect Bluetooth devices'
+              }
             </div>
           ) : (
             <div className="divide-y divide-white/10">
