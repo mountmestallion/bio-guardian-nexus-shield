@@ -1,20 +1,35 @@
 
 import React, { useState } from 'react';
-import { Shield, Wifi, Settings, AlertTriangle, Activity } from 'lucide-react';
+import { Shield, Wifi, Settings, AlertTriangle, Activity, Target } from 'lucide-react';
 import DashboardHeader from '../components/DashboardHeader';
 import ScanPanel from '../components/ScanPanel';
 import DeviceAnalysis from '../components/DeviceAnalysis';
 import CommandCenter from '../components/CommandCenter';
 import SettingsPanel from '../components/SettingsPanel';
+import NanoDetector from '../components/NanoDetector';
+import IOBNetworkAnalyzer from '../components/IOBNetworkAnalyzer';
+import NanoKiller from '../components/NanoKiller';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedDevice, setSelectedDevice] = useState(null);
+  const [selectedNanoDevice, setSelectedNanoDevice] = useState(null);
+
+  const handleNanoDetect = (device: any) => {
+    setSelectedNanoDevice(device);
+    console.log('Nano device detected:', device);
+  };
 
   const renderActivePanel = () => {
     switch (activeTab) {
       case 'scan':
         return <ScanPanel onDeviceSelect={setSelectedDevice} />;
+      case 'nano':
+        return <NanoDetector onNanoDetect={handleNanoDetect} />;
+      case 'iob':
+        return <IOBNetworkAnalyzer />;
+      case 'killer':
+        return <NanoKiller targetDevice={selectedNanoDevice} />;
       case 'analysis':
         return <DeviceAnalysis selectedDevice={selectedDevice} />;
       case 'command':
@@ -53,6 +68,7 @@ const DashboardOverview = ({ setActiveTab }) => {
           BioGuardian <span className="text-cyan-400">NanoTech</span>
         </h1>
         <p className="text-gray-300">Advanced BLE Security & Nanonet Analysis Platform</p>
+        <p className="text-gray-400 text-sm mt-1">ABYSS Framework • Blue Fish Protocol • IOB Detection</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -91,7 +107,7 @@ const DashboardOverview = ({ setActiveTab }) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white/5 p-6 rounded-xl border border-white/10">
-          <h3 className="text-xl font-semibold text-white mb-4">Quick Actions</h3>
+          <h3 className="text-xl font-semibold text-white mb-4">Nano-Detection Suite</h3>
           <div className="space-y-3">
             <button 
               onClick={() => setActiveTab('scan')}
@@ -100,35 +116,51 @@ const DashboardOverview = ({ setActiveTab }) => {
               Start BLE Scan
             </button>
             <button 
-              onClick={() => setActiveTab('analysis')}
+              onClick={() => setActiveTab('nano')}
               className="w-full bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white py-3 px-4 rounded-lg transition-all duration-200 font-medium"
             >
-              View Device Analysis
+              Nano Detector
             </button>
             <button 
-              onClick={() => setActiveTab('command')}
-              className="w-full bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white py-3 px-4 rounded-lg transition-all duration-200 font-medium"
+              onClick={() => setActiveTab('iob')}
+              className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white py-3 px-4 rounded-lg transition-all duration-200 font-medium"
             >
-              Command Center
+              IOB Network Analysis
+            </button>
+            <button 
+              onClick={() => setActiveTab('killer')}
+              className="w-full bg-gradient-to-r from-red-600 to-pink-700 hover:from-red-700 hover:to-pink-800 text-white py-3 px-4 rounded-lg transition-all duration-200 font-medium flex items-center justify-center space-x-2"
+            >
+              <Target className="w-4 h-4" />
+              <span>Nano-Killer Protocol</span>
             </button>
           </div>
         </div>
 
         <div className="bg-white/5 p-6 rounded-xl border border-white/10">
-          <h3 className="text-xl font-semibold text-white mb-4">Recent Activity</h3>
+          <h3 className="text-xl font-semibold text-white mb-4">Recent Nano Activity</h3>
           <div className="space-y-3">
             <div className="flex items-center justify-between py-2">
-              <span className="text-gray-300">Device MAC: AA:BB:CC:DD:EE:FF</span>
+              <span className="text-gray-300">Neural-Mesh-Alpha detected</span>
+              <span className="text-red-400 text-sm">Critical</span>
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-gray-300">Graphene nodes: 5.8 GHz</span>
+              <span className="text-yellow-400 text-sm">Medium</span>
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-gray-300">IOB Network: Body2Body</span>
+              <span className="text-red-400 text-sm">High</span>
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-gray-300">Biofield signature: BF-Theta-2847</span>
               <span className="text-green-400 text-sm">Safe</span>
             </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-gray-300">Device MAC: 11:22:33:44:55:66</span>
-              <span className="text-red-400 text-sm">Threat</span>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-gray-300">Device MAC: FF:EE:DD:CC:BB:AA</span>
-              <span className="text-yellow-400 text-sm">Unknown</span>
-            </div>
+          </div>
+          
+          <div className="mt-4 p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+            <div className="text-sm text-purple-400 font-medium mb-1">ABYSS Framework Status</div>
+            <div className="text-xs text-gray-300">Blue Fish Protocol: Active • Biofield Cell Program: Online</div>
           </div>
         </div>
       </div>
